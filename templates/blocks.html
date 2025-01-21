@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blocks - Python</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="/" class="btn-home">Torna alla Dashboard</a>
+                <h1>Bitcoin Mempool</h1>
+            </div>
+        </header>
+        <main class="content">
+            <section class="blocks-section">
+                <h2>Ultimi Blocchi</h2>
+                <table id="blocks-table">
+                    <thead>
+                        <tr>
+                            <th>Altezza</th>
+                            <th>Data</th>
+                            <th>Transazioni</th>
+                            <th>Dimensione (KB)</th>
+                            <th>Peso (kWU)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <div class="button-container">
+                    <button id="expand-table">Carica Altri Blocchi</button>
+                </div>
+                <div id="spinner-overlay" class="spinner-overlay">
+                    <div class="spinner"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        const apiUrl = '/api/blocks';
+        let lastBlockHeight = null;
+
+        async function loadBlocks(nextUrl = apiUrl) {
+            try {
+                document.getElementById('spinner-overlay').style.visibility = 'visible';
+                document.getElementById('spinner-overlay').style.opacity = '1';
+                document.body.classList.add('blur');
+
+                const response = await fetch(nextUrl);
+                if (!response.ok) {
+                    throw new Error('Errore nella chiamata API');
+                }
+                const blocks = await response.json();
+                return blocks;
+            } catch (error) {
+                alert('Errore: ' + error.message);
+            } finally {
+                document.getElementById('spinner-overlay').style.opacity = '0';
+                document.body.classList.remove('blur');
+                setTimeout(() => {
+                    document.getElementById('spinner-overlay').style.visibility = 'hidden';
+                }, 300);
+            }
+        }
+
+        function addBlocksToTable(blocks) {
+            const tableBody = document.querySelector('#blocks-table tbody');
+            blocks.forEach(block => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                        <td>${block.height}</td>
+                        <td>${new Date(block.timestamp * 1000).toLocaleString()}</td>
+                        <td>${block.tx_count}</td>
+                        <td>${(block.size / 1000).toFixed(3)}</td>
+                        <td>${(block.weight / 1000).toFixed(3)}</td>
+                    `;
+                tableBody.appendChild(row);
+            });
+            if (blocks.length > 0) {
+                lastBlockHeight = (blocks[blocks.length - 1].height) - 1;
+            }
+        }
+
+        document.getElementById('expand-table').addEventListener('click', async () => {
+            if (lastBlockHeight !== null) {
+                const nextUrl = `${apiUrl}?lastBlockHeight=${lastBlockHeight}`;
+                const blocks = await loadBlocks(nextUrl);
+                if (blocks.length > 0) {
+                    addBlocksToTable(blocks);
+                } else {
+                    alert('Non ci sono più blocchi da caricare.');
+                }
+            } else {
+                alert('Errore: non è possibile determinare l\'altezza del prossimo blocco.');
+            }
+        });
+
+        (async function initialize() {
+            const blocks = await loadBlocks();
+            if (blocks.length > 0) {
+                addBlocksToTable(blocks);
+            } else {
+                alert('Errore durante il caricamento dei blocchi.');
+            }
+        })();
+    </script>
+</body>
+</html>

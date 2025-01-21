@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Benvenuto nel Bitcoin Explorer</h1>
+        </header>
+        <main class="content">
+            <div class="button-container">
+                <a href="/blocks" class="btn">Visualizza Blocchi Recenti</a>
+                <a href="/mempool" class="btn">Visualizza Transazioni Mempool</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transazioni Mempool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="/" class="btn-home">Torna alla Dashboard</a>
+                <h1>Bitcoin Mempool</h1>
+            </div>
+        </header>
+        <main class="content">
+            <section class="blocks-section">
+                <h2>Transazioni Recenti</h2>
+                <table id="mempool-table">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Valore (BTC)</th>
+                            <th>Dimensione (vsize)</th>
+                            <th>Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <div id="spinner-overlay" class="spinner-overlay">
+                    <div class="spinner"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        const apiUrl = '/api/mempool';
+
+        async function loadMempoolTransactions() {
+            try {
+                document.getElementById('spinner-overlay').style.visibility = 'visible';
+                document.getElementById('spinner-overlay').style.opacity = '1';
+                document.body.classList.add('blur');
+
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`Errore nella chiamata API: ${response.status}`);
+                }
+                const transactions = await response.json();
+                return transactions;
+            } catch (error) {
+                console.error('Errore durante il caricamento delle transazioni:', error);
+                return [];
+            } finally {
+                document.getElementById('spinner-overlay').style.opacity = '0';
+                document.body.classList.remove('blur');
+                setTimeout(() => {
+                    document.getElementById('spinner-overlay').style.visibility = 'hidden';
+                }, 300);
+            }
+        }
+
+        function addTransactionsToTable(transactions) {
+            const tableBody = document.querySelector('#mempool-table tbody');
+            transactions.forEach(tx => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${tx.txid}</td>
+                    <td>${(tx.value / 100000000).toFixed(3)}</td> <!-- Converte da satoshi a BTC -->
+                    <td>${tx.vsize}</td>
+                    <td>${tx.fee}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        (async function initialize() {
+            const transactions = await loadMempoolTransactions();
+            if (transactions.length > 0) {
+                addTransactionsToTable(transactions);
+            } else {
+                alert('Errore durante il caricamento delle transazioni dalla mempool.');
+            }
+        })();
+    </script>
+</body>
+</html>
