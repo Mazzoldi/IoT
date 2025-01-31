@@ -72,6 +72,10 @@
                     <td>${tx.vsize}</td>
                     <td>${tx.fee}</td>
                 `;
+                row.addEventListener('click', () => {
+                    window.location.href = `./transaction-details?id=${tx.txid}`;
+                });
+                row.style.cursor = 'pointer';
                 tableBody.appendChild(row);
             });
         }

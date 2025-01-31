@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blocks - Python</title>
+    <title>Blocchi</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -70,6 +70,8 @@
             const tableBody = document.querySelector('#blocks-table tbody');
             blocks.forEach(block => {
                 const row = document.createElement('tr');
+                row.classList.add('clickable-row');
+                row.dataset.blockId = block.id;
                 row.innerHTML = `
                         <td>${block.height}</td>
                         <td>${new Date(block.timestamp * 1000).toLocaleString()}</td>
@@ -78,6 +80,12 @@
                         <td>${(block.weight / 1000).toFixed(3)}</td>
                     `;
                 tableBody.appendChild(row);
+            });
+            document.querySelectorAll('.clickable-row').forEach(row => {
+                row.addEventListener('click', function () {
+                    const blockId = this.dataset.blockId;
+                    window.location.href = `./block-details?id=${blockId}`;
+                });
             });
             if (blocks.length > 0) {
                 lastBlockHeight = (blocks[blocks.length - 1].height) - 1;
